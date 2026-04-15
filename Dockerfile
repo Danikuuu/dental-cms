@@ -23,12 +23,7 @@
     COPY package*.json ./
     RUN npm ci
     
-    COPY resources ./resources
-    COPY public ./public
-    COPY vite.config.* ./
-    COPY tsconfig*.json ./
-    COPY postcss.config.* ./
-    COPY tailwind.config.* ./
+    COPY . .
     
     RUN npm run build
     
