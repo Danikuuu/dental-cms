@@ -3,7 +3,7 @@ WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
 
-FROM node:20-alpine AS assets
+FROM node:20 AS assets
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
