@@ -5,7 +5,6 @@
     
     COPY composer.json composer.lock ./
     
-    # Install dependencies WITHOUT running Laravel scripts yet
     RUN composer install \
         --no-dev \
         --prefer-dist \
@@ -20,12 +19,25 @@
     
     WORKDIR /app
     
+    # Declare build-time env vars for Vite
+    # Add any VITE_* variables your app uses here
+    ARG VITE_APP_URL
+    ARG VITE_APP_NAME
+    ARG VITE_PUSHER_APP_KEY
+    ARG VITE_PUSHER_APP_CLUSTER
+    
+    ENV VITE_APP_URL=$VITE_APP_URL
+    ENV VITE_APP_NAME=$VITE_APP_NAME
+    ENV VITE_PUSHER_APP_KEY=$VITE_PUSHER_APP_KEY
+    ENV VITE_PUSHER_APP_CLUSTER=$VITE_PUSHER_APP_CLUSTER
+    
     COPY package*.json ./
     RUN npm ci
     
     COPY . .
     
-    RUN npm run build
+    # Increased memory limit to prevent OOM crashes on Render
+    RUN NODE_OPTIONS="--max-old-space-size=1536" npm run build
     
     
     # ---------- STAGE 3: Final App ----------
@@ -66,7 +78,7 @@
     # Ensure required Laravel folders exist
     RUN mkdir -p storage bootstrap/cache
     
-    # Run Laravel optimizations (safe even if env not fully ready)
+    # Run Laravel optimizations
     RUN php artisan package:discover --ansi || true
     RUN php artisan config:cache || true
     RUN php artisan route:cache || true
@@ -80,4 +92,3 @@
     
     # Start Apache on Render dynamic port
     CMD ["sh", "-c", "sed -ri \"s/Listen 80/Listen ${PORT}/\" /etc/apache2/ports.conf && sed -ri \"s/:80/:${PORT}/\" /etc/apache2/sites-available/000-default.conf && apache2-foreground"]
-    
