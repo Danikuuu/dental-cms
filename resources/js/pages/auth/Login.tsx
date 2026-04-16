@@ -80,6 +80,8 @@ export default function Login() {
                     <p className="text-center text-slate-500 text-xs mt-6">
                         On-premise system — contact your administrator for account access.
                     </p>
+                    <p className="text-center text-slate-500 text-xs mt-6">All role emails : admin@clinic.ph, drsantos@clinic.ph, drreyes@clinic.ph, staff@clinic.ph</p>
+                    <p className="text-center text-slate-500 text-xs mt-6">Password: password</p>
                 </div>
             </div>
         </>
