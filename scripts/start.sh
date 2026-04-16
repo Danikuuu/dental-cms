@@ -19,9 +19,14 @@ EOF
   fi
 fi
 
-# If APP_KEY is not provided by Render, generate one so Laravel can boot.
-if ! grep -q "^APP_KEY=base64:" .env; then
-  php artisan key:generate --force --no-interaction >/dev/null 2>&1 || true
+# If APP_KEY is missing, generate one without relying on artisan boot.
+if ! grep -Eq "^APP_KEY=base64:[A-Za-z0-9+/=]+$" .env; then
+  APP_KEY_VALUE="$(php -r 'echo "base64:".base64_encode(random_bytes(32));')"
+  if grep -q "^APP_KEY=" .env; then
+    sed -i "s|^APP_KEY=.*|APP_KEY=${APP_KEY_VALUE}|" .env
+  else
+    printf "\nAPP_KEY=%s\n" "${APP_KEY_VALUE}" >> .env
+  fi
 fi
 
 # Keep writable paths healthy at runtime.
