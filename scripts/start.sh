@@ -9,12 +9,12 @@ if [ ! -f .env ]; then
     cp .env.example .env
   else
     cat > .env <<'EOF'
-APP_ENV=local
-APP_DEBUG=true
-LOG_CHANNEL=stack
+APP_ENV=production
+APP_DEBUG=false
+LOG_CHANNEL=stderr
 APP_URL=http://localhost:8000
-SESSION_DRIVER=database
-CACHE_STORE=database
+SESSION_DRIVER=file
+CACHE_STORE=file
 EOF
   fi
 fi
