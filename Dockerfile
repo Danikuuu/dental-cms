@@ -20,6 +20,14 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
+# Production defaults (can be overridden in Render env vars)
+ENV APP_ENV=production \
+    APP_DEBUG=false \
+    LOG_CHANNEL=stderr \
+    SESSION_DRIVER=file \
+    CACHE_STORE=file \
+    PORT=10000
+
 # Copy project files
 COPY . .
 
@@ -27,7 +35,7 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader
 
 # Install Node dependencies and build assets
-RUN npm install && npm run build
+RUN npm ci && npm run build
 
 # Set permissions
 RUN chmod -R 775 storage bootstrap/cache \
@@ -41,4 +49,4 @@ COPY conf/supervisord.conf /etc/supervisord.conf
 
 EXPOSE 80
 
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+CMD ["sh", "-c", "sed -i \"s/listen 80;/listen ${PORT};/\" /etc/nginx/http.d/default.conf && /usr/bin/supervisord -c /etc/supervisord.conf"]
