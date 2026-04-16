@@ -5,7 +5,18 @@ cd /var/www/html
 
 # Ensure env file exists in container.
 if [ ! -f .env ]; then
-  cp .env.example .env
+  if [ -f .env.example ]; then
+    cp .env.example .env
+  else
+    cat > .env <<'EOF'
+APP_ENV=local
+APP_DEBUG=true
+LOG_CHANNEL=stack
+APP_URL=http://localhost:8000
+SESSION_DRIVER=database
+CACHE_STORE=database
+EOF
+  fi
 fi
 
 # If APP_KEY is not provided by Render, generate one so Laravel can boot.

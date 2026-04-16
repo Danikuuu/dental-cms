@@ -20,12 +20,13 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Production defaults (can be overridden in Render env vars)
-ENV APP_ENV=production \
-    APP_DEBUG=false \
-    LOG_CHANNEL=stderr \
-    SESSION_DRIVER=file \
-    CACHE_STORE=file \
+# Default runtime values aligned with .env (can be overridden in Render env vars)
+ENV APP_ENV=local \
+    APP_DEBUG=true \
+    LOG_CHANNEL=stack \
+    SESSION_DRIVER=database \
+    CACHE_STORE=database \
+    APP_URL=http://localhost:8000 \
     PORT=10000
 
 # Copy project files
