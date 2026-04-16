@@ -47,6 +47,9 @@ COPY conf/nginx/nginx-site.conf /etc/nginx/http.d/default.conf
 # Copy supervisor config
 COPY conf/supervisord.conf /etc/supervisord.conf
 
+COPY scripts/start.sh /usr/local/bin/start.sh
+RUN chmod +x /usr/local/bin/start.sh
+
 EXPOSE 80
 
-CMD ["sh", "-c", "sed -i \"s/listen 80;/listen ${PORT};/\" /etc/nginx/http.d/default.conf && /usr/bin/supervisord -c /etc/supervisord.conf"]
+CMD ["/usr/local/bin/start.sh"]
