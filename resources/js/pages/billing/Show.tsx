@@ -75,6 +75,8 @@ export default function BillingShow({ invoice }: any) {
                         line-height: 1.35;
                     }
                     .receipt-line { border-top: 1px dashed #9ca3af; margin: 8px 0; }
+                    .receipt-table th, .receipt-table td { padding: 2px 0; vertical-align: top; }
+                    .receipt-muted { color: #4b5563; }
                 }
             `}</style>
             <div className="max-w-4xl">
@@ -105,7 +107,7 @@ export default function BillingShow({ invoice }: any) {
 
                 {/* Payment form */}
                 {showPayment && (
-                    <div className="bg-white border border-teal-200 rounded-xl p-5 mb-5">
+                    <div className="bg-white border border-teal-200 rounded-xl p-5 mb-5 print-hidden">
                         <h3 className="font-semibold text-slate-700 mb-4">Record Payment</h3>
                         <form onSubmit={handlePayment}>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
@@ -161,7 +163,7 @@ export default function BillingShow({ invoice }: any) {
 
                 {/* OR form */}
                 {showOrForm && (
-                    <div className="bg-white border border-slate-200 rounded-xl p-5 mb-5">
+                    <div className="bg-white border border-slate-200 rounded-xl p-5 mb-5 print-hidden">
                         <h3 className="font-semibold text-slate-700 mb-3">Issue Official Receipt</h3>
                         <form onSubmit={handleOrSubmit} className="flex gap-3 items-end">
                             <div className="flex-1">
@@ -314,37 +316,43 @@ export default function BillingShow({ invoice }: any) {
                 {/* Print-only receipt */}
                 <div className="hidden receipt-print">
                     <div className="text-center">
-                        <div className="font-bold text-[13px]">DENTAL CMS CLINIC</div>
-                        <div>{invoice.created_by?.name ? `Prepared by: ${invoice.created_by.name}` : 'Official Receipt'}</div>
-                        <div>{invoice.invoice_date}</div>
+                        <div className="font-bold text-[14px] tracking-wide">OFFICIAL RECEIPT</div>
+                        <div className="font-semibold">DENTAL CMS CLINIC</div>
+                        <div className="receipt-muted">Date: {invoice.invoice_date}</div>
                     </div>
 
                     <div className="receipt-line" />
 
                     <div>
-                        <div><span className="font-semibold">Invoice:</span> {invoice.invoice_number}</div>
-                        {invoice.or_number && <div><span className="font-semibold">OR:</span> {invoice.or_number}</div>}
-                        <div><span className="font-semibold">Patient:</span> {invoice.patient?.last_name}, {invoice.patient?.first_name}</div>
-                        {invoice.patient?.patient_code && <div><span className="font-semibold">Code:</span> {invoice.patient.patient_code}</div>}
+                        <div className="flex justify-between"><span className="font-semibold">Invoice No.</span><span>{invoice.invoice_number}</span></div>
+                        <div className="flex justify-between"><span className="font-semibold">OR No.</span><span>{invoice.or_number || 'Pending'}</span></div>
+                        <div className="flex justify-between"><span className="font-semibold">Cashier</span><span>{invoice.created_by?.name || 'System'}</span></div>
+                        <div className="mt-2"><span className="font-semibold">Patient:</span> {invoice.patient?.last_name}, {invoice.patient?.first_name}</div>
+                        {invoice.patient?.patient_code && <div className="receipt-muted">Patient Code: {invoice.patient.patient_code}</div>}
                     </div>
 
                     <div className="receipt-line" />
 
-                    <div>
-                        <div className="flex justify-between font-semibold">
-                            <span>Item</span>
-                            <span>Total</span>
-                        </div>
-                        {invoice.items?.map((item: any) => (
-                            <div key={item.id} className="mt-1">
-                                <div>{item.description}</div>
-                                <div className="flex justify-between text-slate-700">
-                                    <span>{item.quantity} x {fmt(item.unit_price)}</span>
-                                    <span>{fmt(item.line_total)}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <table className="w-full receipt-table">
+                        <thead>
+                            <tr className="font-semibold">
+                                <th className="text-left">Description</th>
+                                <th className="text-right">Qty</th>
+                                <th className="text-right">Price</th>
+                                <th className="text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {invoice.items?.map((item: any) => (
+                                <tr key={item.id}>
+                                    <td>{item.description}</td>
+                                    <td className="text-right">{item.quantity}</td>
+                                    <td className="text-right">{fmt(item.unit_price)}</td>
+                                    <td className="text-right">{fmt(item.line_total)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
 
                     <div className="receipt-line" />
 
@@ -366,8 +374,8 @@ export default function BillingShow({ invoice }: any) {
                             <div className="receipt-line" />
                             <div className="font-semibold mb-1">Payments</div>
                             {invoice.payments.map((p: any) => (
-                                <div key={p.id} className="flex justify-between">
-                                    <span>{p.payment_date} {METHOD_LABEL[p.method] ?? p.method}</span>
+                                <div key={p.id} className="flex justify-between text-[10px]">
+                                    <span>{p.payment_date} - {METHOD_LABEL[p.method] ?? p.method}</span>
                                     <span>{fmt(p.amount)}</span>
                                 </div>
                             ))}
@@ -377,7 +385,7 @@ export default function BillingShow({ invoice }: any) {
                     <div className="receipt-line" />
                     <div className="text-center">
                         <div>Thank you for choosing our clinic.</div>
-                        <div>Please keep this receipt for your records.</div>
+                        <div className="receipt-muted">Please keep this receipt for your records.</div>
                     </div>
                 </div>
             </div>
