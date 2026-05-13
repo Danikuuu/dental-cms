@@ -14,10 +14,13 @@ class Template extends Model
     protected function casts(): array
     {
         return [
-            'is_active'  => 'boolean',
+            'is_active' => 'boolean',
             'is_default' => 'boolean',
         ];
     }
 
-    public function createdBy() { return $this->belongsTo(User::class, 'created_by'); }
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }

@@ -16,5 +16,8 @@ class InsuranceProvider extends Model
         return ['is_active' => 'boolean'];
     }
 
-    public function patientPolicies() { return $this->hasMany(PatientInsurance::class, 'provider_id'); }
+    public function patientPolicies()
+    {
+        return $this->hasMany(PatientInsurance::class, 'provider_id');
+    }
 }

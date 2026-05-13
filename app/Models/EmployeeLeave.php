@@ -16,10 +16,17 @@ class EmployeeLeave extends Model
     {
         return [
             'start_date' => 'date',
-            'end_date'   => 'date',
+            'end_date' => 'date',
         ];
     }
 
-    public function employee()   { return $this->belongsTo(Employee::class); }
-    public function approvedBy() { return $this->belongsTo(User::class, 'approved_by'); }
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
 }

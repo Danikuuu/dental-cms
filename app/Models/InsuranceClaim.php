@@ -16,17 +16,28 @@ class InsuranceClaim extends Model
     protected function casts(): array
     {
         return [
-            'claim_date'      => 'date',
+            'claim_date' => 'date',
             'submission_date' => 'date',
-            'approval_date'   => 'date',
-            'payment_date'    => 'date',
-            'claimed_amount'  => 'decimal:2',
+            'approval_date' => 'date',
+            'payment_date' => 'date',
+            'claimed_amount' => 'decimal:2',
             'approved_amount' => 'decimal:2',
             'rejected_amount' => 'decimal:2',
         ];
     }
 
-    public function insurance() { return $this->belongsTo(PatientInsurance::class, 'patient_insurance_id'); }
-    public function invoice()   { return $this->belongsTo(Invoice::class); }
-    public function patient()   { return $this->belongsTo(Patient::class); }
+    public function insurance()
+    {
+        return $this->belongsTo(PatientInsurance::class, 'patient_insurance_id');
+    }
+
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class);
+    }
+
+    public function patient()
+    {
+        return $this->belongsTo(Patient::class);
+    }
 }

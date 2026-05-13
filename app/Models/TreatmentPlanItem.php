@@ -16,5 +16,8 @@ class TreatmentPlanItem extends Model
         return ['estimated_fee' => 'decimal:2'];
     }
 
-    public function plan() { return $this->belongsTo(TreatmentPlan::class, 'treatment_plan_id'); }
+    public function plan()
+    {
+        return $this->belongsTo(TreatmentPlan::class, 'treatment_plan_id');
+    }
 }

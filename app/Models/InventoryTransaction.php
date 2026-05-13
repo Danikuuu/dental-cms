@@ -15,13 +15,20 @@ class InventoryTransaction extends Model
     {
         return [
             'transaction_date' => 'date',
-            'quantity'         => 'decimal:2',
-            'unit_cost'        => 'decimal:2',
-            'stock_before'     => 'decimal:2',
-            'stock_after'      => 'decimal:2',
+            'quantity' => 'decimal:2',
+            'unit_cost' => 'decimal:2',
+            'stock_before' => 'decimal:2',
+            'stock_after' => 'decimal:2',
         ];
     }
 
-    public function item()        { return $this->belongsTo(InventoryItem::class, 'item_id'); }
-    public function performedBy() { return $this->belongsTo(User::class, 'performed_by'); }
+    public function item()
+    {
+        return $this->belongsTo(InventoryItem::class, 'item_id');
+    }
+
+    public function performedBy()
+    {
+        return $this->belongsTo(User::class, 'performed_by');
+    }
 }

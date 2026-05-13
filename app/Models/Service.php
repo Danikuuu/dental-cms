@@ -14,9 +14,9 @@ class Service extends Model
     protected function casts(): array
     {
         return [
-            'base_fee'        => 'decimal:2',
-            'is_active'       => 'boolean',
-            'is_vat_inclusive'=> 'boolean',
+            'base_fee' => 'decimal:2',
+            'is_active' => 'boolean',
+            'is_vat_inclusive' => 'boolean',
         ];
     }
 

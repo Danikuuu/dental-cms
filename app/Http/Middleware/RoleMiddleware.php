@@ -19,6 +19,7 @@ class RoleMiddleware
             if ($request->expectsJson() || $request->header('X-Inertia')) {
                 return response()->json(['message' => 'Unauthorized.'], 403);
             }
+
             return redirect()->route('dashboard')
                 ->with('error', 'You do not have permission to access that page.');
         }

@@ -7,5 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class InventoryCategory extends Model
 {
     protected $fillable = ['name', 'description'];
-    public function items() { return $this->hasMany(InventoryItem::class, 'category_id'); }
+
+    public function items()
+    {
+        return $this->hasMany(InventoryItem::class, 'category_id');
+    }
 }

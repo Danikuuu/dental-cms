@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Route;
 
 class PatientImage extends Model
 {
@@ -25,10 +26,26 @@ class PatientImage extends Model
 
     public function getUrlAttribute(): string
     {
-        return asset('storage/' . $this->filename);
+        if (Route::has('patient-images.show')) {
+            return route('patient-images.show', $this);
+        }
+
+        // Fallback (shouldn't happen once routes are loaded)
+        return url('/patient-images/'.$this->id.'/file');
     }
 
-    public function patient()     { return $this->belongsTo(Patient::class); }
-    public function uploadedBy()  { return $this->belongsTo(User::class, 'uploaded_by'); }
-    public function appointment() { return $this->belongsTo(Appointment::class); }
+    public function patient()
+    {
+        return $this->belongsTo(Patient::class);
+    }
+
+    public function uploadedBy()
+    {
+        return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    public function appointment()
+    {
+        return $this->belongsTo(Appointment::class);
+    }
 }

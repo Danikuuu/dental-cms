@@ -17,18 +17,21 @@ class ActivityLog extends Model
         return ['changes' => 'array'];
     }
 
-    public function user() { return $this->belongsTo(User::class); }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     /** Convenience helper to record an action from anywhere */
     public static function record(string $action, string $description, ?string $modelType = null, ?int $modelId = null, ?array $changes = null): void
     {
         static::create([
-            'user_id'    => Auth::id(),
-            'action'     => $action,
-            'description'=> $description,
+            'user_id' => Auth::id(),
+            'action' => $action,
+            'description' => $description,
             'model_type' => $modelType,
-            'model_id'   => $modelId,
-            'changes'    => $changes,
+            'model_id' => $modelId,
+            'changes' => $changes,
             'ip_address' => request()->ip(),
         ]);
     }

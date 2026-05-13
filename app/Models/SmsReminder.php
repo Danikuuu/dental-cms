@@ -16,17 +16,24 @@ class SmsReminder extends Model
     {
         return [
             'scheduled_at' => 'datetime',
-            'sent_at'      => 'datetime',
+            'sent_at' => 'datetime',
         ];
     }
 
-    public function appointment() { return $this->belongsTo(Appointment::class); }
-    public function patient()     { return $this->belongsTo(Patient::class); }
+    public function appointment()
+    {
+        return $this->belongsTo(Appointment::class);
+    }
+
+    public function patient()
+    {
+        return $this->belongsTo(Patient::class);
+    }
 
     /** Pending reminders due to be sent now */
     public function scopeDue($query)
     {
         return $query->where('status', 'pending')
-                     ->where('scheduled_at', '<=', now());
+            ->where('scheduled_at', '<=', now());
     }
 }

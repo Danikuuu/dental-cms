@@ -17,12 +17,19 @@ class TreatmentTimelineEvent extends Model
     {
         return [
             'event_date' => 'date',
-            'amount'     => 'decimal:2',
+            'amount' => 'decimal:2',
         ];
     }
 
-    public function patient()   { return $this->belongsTo(Patient::class); }
-    public function createdBy() { return $this->belongsTo(User::class, 'created_by'); }
+    public function patient()
+    {
+        return $this->belongsTo(Patient::class);
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 
     /**
      * Record a timeline event from anywhere in the app.
@@ -39,16 +46,16 @@ class TreatmentTimelineEvent extends Model
         ?string $eventDate = null
     ): self {
         return static::create([
-            'patient_id'     => $patientId,
-            'created_by'     => Auth::id() ?? 1,
-            'event_type'     => $eventType,
-            'title'          => $title,
-            'description'    => $description,
-            'tooth_number'   => $toothNumber,
-            'amount'         => $amount,
-            'reference_id'   => $referenceId,
+            'patient_id' => $patientId,
+            'created_by' => Auth::id() ?? 1,
+            'event_type' => $eventType,
+            'title' => $title,
+            'description' => $description,
+            'tooth_number' => $toothNumber,
+            'amount' => $amount,
+            'reference_id' => $referenceId,
             'reference_type' => $referenceType,
-            'event_date'     => $eventDate ?? now()->toDateString(),
+            'event_date' => $eventDate ?? now()->toDateString(),
         ]);
     }
 }

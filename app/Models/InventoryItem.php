@@ -19,15 +19,22 @@ class InventoryItem extends Model
             'current_stock' => 'decimal:2',
             'minimum_stock' => 'decimal:2',
             'reorder_level' => 'decimal:2',
-            'unit_cost'     => 'decimal:2',
-            'unit_price'    => 'decimal:2',
-            'expiry_date'   => 'date',
-            'is_active'     => 'boolean',
+            'unit_cost' => 'decimal:2',
+            'unit_price' => 'decimal:2',
+            'expiry_date' => 'date',
+            'is_active' => 'boolean',
         ];
     }
 
-    public function category()     { return $this->belongsTo(InventoryCategory::class, 'category_id'); }
-    public function transactions() { return $this->hasMany(InventoryTransaction::class, 'item_id'); }
+    public function category()
+    {
+        return $this->belongsTo(InventoryCategory::class, 'category_id');
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(InventoryTransaction::class, 'item_id');
+    }
 
     public function getLowStockAttribute(): bool
     {
@@ -43,26 +50,26 @@ class InventoryItem extends Model
     public function adjustStock(string $type, float $qty, ?float $unitCost, ?string $notes, ?string $ref, int $userId): InventoryTransaction
     {
         $before = (float) $this->current_stock;
-        $after  = match ($type) {
-            'stock_in'   => $before + $qty,
-            'stock_out'  => $before - $qty,
+        $after = match ($type) {
+            'stock_in' => $before + $qty,
+            'stock_out' => $before - $qty,
             'adjustment' => $qty,           // absolute value
-            'expired'    => $before - $qty,
-            'returned'   => $before + $qty,
-            default      => $before,
+            'expired' => $before - $qty,
+            'returned' => $before + $qty,
+            default => $before,
         };
 
         $this->update(['current_stock' => max(0, $after)]);
 
         return $this->transactions()->create([
-            'performed_by'     => $userId,
-            'type'             => $type,
-            'quantity'         => $qty,
-            'unit_cost'        => $unitCost ?? $this->unit_cost,
-            'stock_before'     => $before,
-            'stock_after'      => max(0, $after),
-            'reference'        => $ref,
-            'notes'            => $notes,
+            'performed_by' => $userId,
+            'type' => $type,
+            'quantity' => $qty,
+            'unit_cost' => $unitCost ?? $this->unit_cost,
+            'stock_before' => $before,
+            'stock_after' => max(0, $after),
+            'reference' => $ref,
+            'notes' => $notes,
             'transaction_date' => now()->toDateString(),
         ]);
     }

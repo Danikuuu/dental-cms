@@ -15,9 +15,12 @@ class EmployeeAttendance extends Model
     {
         return [
             'attendance_date' => 'date',
-            'hours_worked'    => 'decimal:2',
+            'hours_worked' => 'decimal:2',
         ];
     }
 
-    public function employee() { return $this->belongsTo(Employee::class); }
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
 }

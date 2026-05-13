@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ActivityLog;
 use App\Models\Patient;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,11 +12,10 @@ class PatientController extends Controller
     public function index(Request $request): Response
     {
         $patients = Patient::query()
-            ->when($request->search, fn ($q, $s) =>
-                $q->where('first_name', 'like', "%$s%")
-                  ->orWhere('last_name',  'like', "%$s%")
-                  ->orWhere('patient_code', 'like', "%$s%")
-                  ->orWhere('phone',      'like', "%$s%")
+            ->when($request->search, fn ($q, $s) => $q->where('first_name', 'like', "%$s%")
+                ->orWhere('last_name', 'like', "%$s%")
+                ->orWhere('patient_code', 'like', "%$s%")
+                ->orWhere('phone', 'like', "%$s%")
             )
             ->orderBy('last_name')
             ->paginate(20)
@@ -25,7 +23,7 @@ class PatientController extends Controller
 
         return Inertia::render('patients/Index', [
             'patients' => $patients,
-            'filters'  => $request->only('search'),
+            'filters' => $request->only('search'),
         ]);
     }
 
@@ -37,40 +35,40 @@ class PatientController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'first_name'   => 'required|string|max:100',
-            'middle_name'  => 'nullable|string|max:100',
-            'last_name'    => 'required|string|max:100',
-            'date_of_birth'=> 'required|date',
-            'sex'          => 'required|in:Male,Female',
+            'first_name' => 'required|string|max:100',
+            'middle_name' => 'nullable|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'date_of_birth' => 'required|date',
+            'sex' => 'required|in:Male,Female',
             'civil_status' => 'nullable|in:Single,Married,Widowed,Separated',
-            'address'      => 'nullable|string|max:255',
-            'city'         => 'nullable|string|max:100',
-            'province'     => 'nullable|string|max:100',
-            'phone'        => 'nullable|string|max:20',
-            'email'        => 'nullable|email|max:100',
-            'occupation'   => 'nullable|string|max:100',
-            'referred_by'  => 'nullable|string|max:100',
+            'address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
+            'province' => 'nullable|string|max:100',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:100',
+            'occupation' => 'nullable|string|max:100',
+            'referred_by' => 'nullable|string|max:100',
             'philhealth_number' => 'nullable|string|max:20',
-            'emergency_contact_name'     => 'nullable|string|max:100',
-            'emergency_contact_phone'    => 'nullable|string|max:20',
+            'emergency_contact_name' => 'nullable|string|max:100',
+            'emergency_contact_phone' => 'nullable|string|max:20',
             'emergency_contact_relation' => 'nullable|string|max:50',
-            'blood_type'         => 'nullable|string|max:5',
-            'allergies'          => 'nullable|string',
-            'current_medications'=> 'nullable|string',
-            'past_surgeries'     => 'nullable|string',
-            'medical_notes'      => 'nullable|string',
-            'has_hypertension'   => 'boolean',
-            'has_diabetes'       => 'boolean',
-            'has_heart_disease'  => 'boolean',
-            'has_asthma'         => 'boolean',
-            'has_bleeding_disorder'  => 'boolean',
-            'has_thyroid_disorder'   => 'boolean',
-            'is_pregnant'        => 'boolean',
+            'blood_type' => 'nullable|string|max:5',
+            'allergies' => 'nullable|string',
+            'current_medications' => 'nullable|string',
+            'past_surgeries' => 'nullable|string',
+            'medical_notes' => 'nullable|string',
+            'has_hypertension' => 'boolean',
+            'has_diabetes' => 'boolean',
+            'has_heart_disease' => 'boolean',
+            'has_asthma' => 'boolean',
+            'has_bleeding_disorder' => 'boolean',
+            'has_thyroid_disorder' => 'boolean',
+            'is_pregnant' => 'boolean',
             'has_kidney_disease' => 'boolean',
-            'has_liver_disease'  => 'boolean',
-            'last_dental_visit'  => 'nullable|date',
-            'previous_dentist'   => 'nullable|string|max:100',
-            'dental_complaints'  => 'nullable|string',
+            'has_liver_disease' => 'boolean',
+            'last_dental_visit' => 'nullable|date',
+            'previous_dentist' => 'nullable|string|max:100',
+            'dental_complaints' => 'nullable|string',
         ]);
 
         $patient = Patient::create($validated);
@@ -104,40 +102,40 @@ class PatientController extends Controller
     public function update(Request $request, Patient $patient)
     {
         $validated = $request->validate([
-            'first_name'   => 'required|string|max:100',
-            'middle_name'  => 'nullable|string|max:100',
-            'last_name'    => 'required|string|max:100',
-            'date_of_birth'=> 'required|date',
-            'sex'          => 'required|in:Male,Female',
+            'first_name' => 'required|string|max:100',
+            'middle_name' => 'nullable|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'date_of_birth' => 'required|date',
+            'sex' => 'required|in:Male,Female',
             'civil_status' => 'nullable|in:Single,Married,Widowed,Separated',
-            'address'      => 'nullable|string|max:255',
-            'city'         => 'nullable|string|max:100',
-            'province'     => 'nullable|string|max:100',
-            'phone'        => 'nullable|string|max:20',
-            'email'        => 'nullable|email|max:100',
-            'occupation'   => 'nullable|string|max:100',
-            'referred_by'  => 'nullable|string|max:100',
+            'address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
+            'province' => 'nullable|string|max:100',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:100',
+            'occupation' => 'nullable|string|max:100',
+            'referred_by' => 'nullable|string|max:100',
             'philhealth_number' => 'nullable|string|max:20',
-            'emergency_contact_name'     => 'nullable|string|max:100',
-            'emergency_contact_phone'    => 'nullable|string|max:20',
+            'emergency_contact_name' => 'nullable|string|max:100',
+            'emergency_contact_phone' => 'nullable|string|max:20',
             'emergency_contact_relation' => 'nullable|string|max:50',
-            'blood_type'         => 'nullable|string|max:5',
-            'allergies'          => 'nullable|string',
-            'current_medications'=> 'nullable|string',
-            'past_surgeries'     => 'nullable|string',
-            'medical_notes'      => 'nullable|string',
-            'has_hypertension'   => 'boolean',
-            'has_diabetes'       => 'boolean',
-            'has_heart_disease'  => 'boolean',
-            'has_asthma'         => 'boolean',
-            'has_bleeding_disorder'  => 'boolean',
-            'has_thyroid_disorder'   => 'boolean',
-            'is_pregnant'        => 'boolean',
+            'blood_type' => 'nullable|string|max:5',
+            'allergies' => 'nullable|string',
+            'current_medications' => 'nullable|string',
+            'past_surgeries' => 'nullable|string',
+            'medical_notes' => 'nullable|string',
+            'has_hypertension' => 'boolean',
+            'has_diabetes' => 'boolean',
+            'has_heart_disease' => 'boolean',
+            'has_asthma' => 'boolean',
+            'has_bleeding_disorder' => 'boolean',
+            'has_thyroid_disorder' => 'boolean',
+            'is_pregnant' => 'boolean',
             'has_kidney_disease' => 'boolean',
-            'has_liver_disease'  => 'boolean',
-            'last_dental_visit'  => 'nullable|date',
-            'previous_dentist'   => 'nullable|string|max:100',
-            'dental_complaints'  => 'nullable|string',
+            'has_liver_disease' => 'boolean',
+            'last_dental_visit' => 'nullable|date',
+            'previous_dentist' => 'nullable|string|max:100',
+            'dental_complaints' => 'nullable|string',
         ]);
 
         $patient->update($validated);
@@ -149,6 +147,7 @@ class PatientController extends Controller
     public function destroy(Patient $patient)
     {
         $patient->delete();
+
         return redirect()->route('patients.index')
             ->with('success', 'Patient record deleted.');
     }

@@ -14,12 +14,23 @@ class TreatmentPlan extends Model
     protected function casts(): array
     {
         return [
-            'start_date'              => 'date',
-            'target_completion_date'  => 'date',
+            'start_date' => 'date',
+            'target_completion_date' => 'date',
         ];
     }
 
-    public function patient() { return $this->belongsTo(Patient::class); }
-    public function dentist() { return $this->belongsTo(User::class, 'dentist_id'); }
-    public function items()   { return $this->hasMany(TreatmentPlanItem::class); }
+    public function patient()
+    {
+        return $this->belongsTo(Patient::class);
+    }
+
+    public function dentist()
+    {
+        return $this->belongsTo(User::class, 'dentist_id');
+    }
+
+    public function items()
+    {
+        return $this->hasMany(TreatmentPlanItem::class);
+    }
 }

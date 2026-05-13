@@ -15,10 +15,17 @@ class Payment extends Model
     {
         return [
             'payment_date' => 'date',
-            'amount'       => 'decimal:2',
+            'amount' => 'decimal:2',
         ];
     }
 
-    public function invoice()    { return $this->belongsTo(Invoice::class); }
-    public function receivedBy() { return $this->belongsTo(User::class, 'received_by'); }
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class);
+    }
+
+    public function receivedBy()
+    {
+        return $this->belongsTo(User::class, 'received_by');
+    }
 }

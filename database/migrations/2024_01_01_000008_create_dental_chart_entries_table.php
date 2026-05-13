@@ -1,9 +1,11 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('dental_chart_entries', function (Blueprint $table) {
@@ -23,5 +25,9 @@ return new class extends Migration {
             $table->index(['patient_id', 'chart_type']);
         });
     }
-    public function down(): void { Schema::dropIfExists('dental_chart_entries'); }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('dental_chart_entries');
+    }
 };

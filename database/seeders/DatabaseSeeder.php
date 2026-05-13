@@ -2,12 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\ActivityLog;
 use App\Models\Appointment;
 use App\Models\ClinicSetting;
-use App\Models\DentalChartEntry;
 use App\Models\Employee;
-use App\Models\EmployeeAttendance;
 use App\Models\InsuranceClaim;
 use App\Models\InsuranceProvider;
 use App\Models\InventoryCategory;
@@ -16,13 +13,11 @@ use App\Models\InventoryTransaction;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Patient;
-use App\Models\PatientInsurance;
 use App\Models\Payment;
 use App\Models\Service;
 use App\Models\SmsReminder;
 use App\Models\Template;
 use App\Models\TreatmentPlan;
-use App\Models\TreatmentPlanItem;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
@@ -68,7 +63,7 @@ class DatabaseSeeder extends Seeder
             ['sms_enabled',     'false',                                      'sms'],
             ['sms_provider',    'semaphore',                                  'sms'],
             ['sms_sender_name', 'DENTAL',                                     'sms'],
-        ])->each(fn($s) => ClinicSetting::firstOrCreate(
+        ])->each(fn ($s) => ClinicSetting::firstOrCreate(
             ['key' => $s[0]],
             ['value' => $s[1], 'group' => $s[2]]
         ));
@@ -88,7 +83,7 @@ class DatabaseSeeder extends Seeder
             ['Teeth Whitening',             'Cosmetic',     5000.00],
             ['Dental X-Ray (periapical)',   'Diagnostic',    300.00],
             ['Panoramic X-Ray',             'Diagnostic',    800.00],
-        ])->map(fn($s) => Service::firstOrCreate(
+        ])->map(fn ($s) => Service::firstOrCreate(
             ['name' => $s[0]],
             ['category' => $s[1], 'base_fee' => $s[2], 'is_active' => true]
         ));
@@ -96,7 +91,7 @@ class DatabaseSeeder extends Seeder
 
         // ── Inventory ─────────────────────────────────────────────────────────
         $cats = collect(['Consumables', 'Instruments', 'Medications', 'PPE', 'Restorative Materials', 'Sterilization Supplies'])
-            ->mapWithKeys(fn($name) => [$name => InventoryCategory::firstOrCreate(['name' => $name])]);
+            ->mapWithKeys(fn ($name) => [$name => InventoryCategory::firstOrCreate(['name' => $name])]);
 
         collect([
             ['Disposable Gloves (box)',   'Consumables',            'box', 50, 10, 20,  180.00, 'MED-GLOVES'],
@@ -111,29 +106,29 @@ class DatabaseSeeder extends Seeder
             [$name, $catName, $unit, $stock, $min, $reorder, $cost, $sku] = $i;
 
             $item = InventoryItem::firstOrCreate(['sku' => $sku], [
-                'category_id'   => $cats[$catName]->id,
-                'name'          => $name,
-                'unit'          => $unit,
+                'category_id' => $cats[$catName]->id,
+                'name' => $name,
+                'unit' => $unit,
                 'current_stock' => $stock,
                 'minimum_stock' => $min,
                 'reorder_level' => $reorder,
-                'unit_cost'     => $cost,
-                'unit_price'    => $cost * 1.2,
-                'supplier'      => 'MedSupply PH',
-                'is_active'     => true,
+                'unit_cost' => $cost,
+                'unit_price' => $cost * 1.2,
+                'supplier' => 'MedSupply PH',
+                'is_active' => true,
             ]);
 
             if ($item->wasRecentlyCreated) {
                 InventoryTransaction::create([
-                    'item_id'          => $item->id,
-                    'performed_by'     => $admin->id,
-                    'type'             => 'stock_in',
-                    'quantity'         => $stock,
-                    'unit_cost'        => $cost,
-                    'stock_before'     => 0,
-                    'stock_after'      => $stock,
-                    'reference'        => 'INITIAL',
-                    'notes'            => 'Initial stock',
+                    'item_id' => $item->id,
+                    'performed_by' => $admin->id,
+                    'type' => 'stock_in',
+                    'quantity' => $stock,
+                    'unit_cost' => $cost,
+                    'stock_before' => 0,
+                    'stock_after' => $stock,
+                    'reference' => 'INITIAL',
+                    'notes' => 'Initial stock',
                     'transaction_date' => now()->subMonths(2)->toDateString(),
                 ]);
             }
@@ -150,42 +145,42 @@ class DatabaseSeeder extends Seeder
         ])->flatMap(function ($e) use ($now) {
             [$first, $last, $position, $type, $salary, $status] = $e;
 
-            $emp = Employee::firstOrCreate(['email' => strtolower($first) . '@clinic.ph'], [
-                'first_name'      => $first,
-                'last_name'       => $last,
-                'position'        => $position,
+            $emp = Employee::firstOrCreate(['email' => strtolower($first).'@clinic.ph'], [
+                'first_name' => $first,
+                'last_name' => $last,
+                'position' => $position,
                 'employment_type' => $type,
-                'date_hired'      => now()->subYear()->toDateString(),
-                'status'          => $status,
-                'phone'           => '09' . rand(100000000, 999999999),
-                'basic_salary'    => $salary,
-                'pay_period'      => 'monthly',
+                'date_hired' => now()->subYear()->toDateString(),
+                'status' => $status,
+                'phone' => '09'.rand(100000000, 999999999),
+                'basic_salary' => $salary,
+                'pay_period' => 'monthly',
             ]);
 
-            if (!$emp->wasRecentlyCreated) {
+            if (! $emp->wasRecentlyCreated) {
                 return [];
             }
 
             // Generate weekday attendance rows for the last 2 weeks
             return collect(now()->subWeeks(2)->startOfDay()->daysUntil(now()))
-                ->filter(fn($date) => $date->isWeekday())
-                ->map(fn($date) => [
-                    'employee_id'     => $emp->id,
+                ->filter(fn ($date) => $date->isWeekday())
+                ->map(fn ($date) => [
+                    'employee_id' => $emp->id,
                     'attendance_date' => $date->toDateString(),
-                    'time_in'         => '08:00',
-                    'time_out'        => '17:00',
-                    'status'          => 'present',
-                    'hours_worked'    => 8,
-                    'notes'           => null,
-                    'created_at'      => $now,
-                    'updated_at'      => $now,
+                    'time_in' => '08:00',
+                    'time_out' => '17:00',
+                    'status' => 'present',
+                    'hours_worked' => 8,
+                    'notes' => null,
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ])
                 ->values()
                 ->all();
         });
 
         $attendanceBulk->chunk(100)->each(
-            fn($chunk) => DB::table('employee_attendances')->insertOrIgnore($chunk->all())
+            fn ($chunk) => DB::table('employee_attendances')->insertOrIgnore($chunk->all())
         );
         $this->command->info('✓ Employees & attendance');
 
@@ -203,21 +198,21 @@ class DatabaseSeeder extends Seeder
             ['Rosario',   'Paz',    'Castillo',    '1982-12-03', 'Female', 'Married',  '09248889999', false, false],
             ['Miguel',    null,     'Torres',      '1992-08-17', 'Male',   'Single',   '09259990000', false, false],
             ['Josephine', 'Claire', 'Aquino',      '1978-05-09', 'Female', 'Married',  '09261110000', false, true],
-        ])->map(fn($p) => Patient::firstOrCreate(['phone' => $p[6]], [
-            'first_name'       => $p[0],
-            'middle_name'      => $p[1],
-            'last_name'        => $p[2],
-            'date_of_birth'    => $p[3],
-            'sex'              => $p[4],
-            'civil_status'     => $p[5],
-            'phone'            => $p[6],
-            'address'          => rand(1, 999) . ' Rizal St.',
-            'city'             => $cities[array_rand($cities)],
-            'province'         => 'Metro Manila',
+        ])->map(fn ($p) => Patient::firstOrCreate(['phone' => $p[6]], [
+            'first_name' => $p[0],
+            'middle_name' => $p[1],
+            'last_name' => $p[2],
+            'date_of_birth' => $p[3],
+            'sex' => $p[4],
+            'civil_status' => $p[5],
+            'phone' => $p[6],
+            'address' => rand(1, 999).' Rizal St.',
+            'city' => $cities[array_rand($cities)],
+            'province' => 'Metro Manila',
             'has_hypertension' => $p[7],
-            'has_diabetes'     => $p[8],
-            'blood_type'       => ['A+', 'B+', 'O+', 'AB+'][array_rand(['A+', 'B+', 'O+', 'AB+'])],
-            'allergies'        => rand(0, 4) === 0 ? 'Penicillin' : null,
+            'has_diabetes' => $p[8],
+            'blood_type' => ['A+', 'B+', 'O+', 'AB+'][array_rand(['A+', 'B+', 'O+', 'AB+'])],
+            'allergies' => rand(0, 4) === 0 ? 'Penicillin' : null,
         ]));
         $this->command->info('✓ Patients');
 
@@ -232,24 +227,24 @@ class DatabaseSeeder extends Seeder
         $policies = $patients->take(3)->values()
             ->mapWithKeys(function ($patient, $i) use ($maxicare, $philhealth, $now) {
                 $providerId = $i === 0 ? $maxicare->id : $philhealth->id;
-                $existing   = DB::table('patient_insurance')
+                $existing = DB::table('patient_insurance')
                     ->where('patient_id', $patient->id)
                     ->where('provider_id', $providerId)
                     ->first();
 
-                if (!$existing) {
-                    $id       = DB::table('patient_insurance')->insertGetId([
-                        'patient_id'     => $patient->id,
-                        'provider_id'    => $providerId,
-                        'policy_number'  => 'POL-' . strtoupper($patient->last_name) . '-' . rand(1000, 9999),
-                        'member_id'      => 'MEM-' . rand(100000, 999999),
+                if (! $existing) {
+                    $id = DB::table('patient_insurance')->insertGetId([
+                        'patient_id' => $patient->id,
+                        'provider_id' => $providerId,
+                        'policy_number' => 'POL-'.strtoupper($patient->last_name).'-'.rand(1000, 9999),
+                        'member_id' => 'MEM-'.rand(100000, 999999),
                         'effective_date' => now()->subYear()->toDateString(),
-                        'expiry_date'    => now()->addYear()->toDateString(),
+                        'expiry_date' => now()->addYear()->toDateString(),
                         'coverage_limit' => 50000.00,
-                        'used_amount'    => 0,
-                        'status'         => 'active',
-                        'created_at'     => $now,
-                        'updated_at'     => $now,
+                        'used_amount' => 0,
+                        'status' => 'active',
+                        'created_at' => $now,
+                        'updated_at' => $now,
                     ]);
                     $existing = DB::table('patient_insurance')->find($id);
                 }
@@ -259,15 +254,15 @@ class DatabaseSeeder extends Seeder
         $this->command->info('✓ Insurance');
 
         // ── Appointments, Invoices, Payments ──────────────────────────────────
-        $dentists   = [$dentist1, $dentist2];
+        $dentists = [$dentist1, $dentist2];
         $complaints = ['Tooth pain', 'Routine check-up', 'Sensitive teeth', 'Bleeding gums', 'Chipped tooth', 'Wants cleaning'];
         $conditions = ['caries', 'filling', 'healthy', 'crown', 'extracted'];
         $treatments = ['Composite filling', 'Extraction', 'Crown placement', 'Cleaning', null];
-        $teeth      = [11, 12, 14, 16, 21, 22, 24, 26, 36, 37, 46, 47];
-        $methods    = ['cash', 'gcash', 'maya', 'credit_card', 'bank_transfer'];
+        $teeth = [11, 12, 14, 16, 21, 22, 24, 26, 36, 37, 46, 47];
+        $methods = ['cash', 'gcash', 'maya', 'credit_card', 'bank_transfer'];
 
         $invoiceNumber = 1;
-        $chartBulk     = [];
+        $chartBulk = [];
 
         $patients->each(function ($patient, $pi) use (
             $dentists, $complaints, $conditions, $treatments, $teeth, $methods,
@@ -281,18 +276,18 @@ class DatabaseSeeder extends Seeder
                 $teeth, $methods, $admin, $services, $policies, $now, $pi,
                 &$invoiceNumber, &$chartBulk
             ) {
-                $daysAgo     = ($a + 1) * rand(10, 30);
+                $daysAgo = ($a + 1) * rand(10, 30);
                 $scheduledAt = now()->subDays($daysAgo)->setHour(9 + ($a * 2))->setMinute(0)->setSecond(0);
-                $status      = $a === 2 ? 'cancelled' : 'completed';
+                $status = $a === 2 ? 'cancelled' : 'completed';
 
                 $appt = Appointment::create([
-                    'patient_id'       => $patient->id,
-                    'dentist_id'       => $dentist->id,
-                    'scheduled_at'     => $scheduledAt,
+                    'patient_id' => $patient->id,
+                    'dentist_id' => $dentist->id,
+                    'scheduled_at' => $scheduledAt,
                     'duration_minutes' => 60,
-                    'status'           => $status,
-                    'chief_complaint'  => $complaints[array_rand($complaints)],
-                    'clinical_notes'   => $status === 'completed' ? 'Completed without complications.' : null,
+                    'status' => $status,
+                    'chief_complaint' => $complaints[array_rand($complaints)],
+                    'clinical_notes' => $status === 'completed' ? 'Completed without complications.' : null,
                 ]);
 
                 if ($status !== 'completed') {
@@ -300,80 +295,80 @@ class DatabaseSeeder extends Seeder
                 }
 
                 $chartBulk[] = [
-                    'patient_id'     => $patient->id,
+                    'patient_id' => $patient->id,
                     'appointment_id' => $appt->id,
-                    'dentist_id'     => $dentist->id,
-                    'tooth_number'   => $teeth[array_rand($teeth)],
-                    'condition'      => $conditions[array_rand($conditions)],
-                    'treatment'      => $treatments[array_rand($treatments)],
-                    'status'         => 'completed',
-                    'chart_type'     => 'adult',
-                    'date_recorded'  => $scheduledAt->toDateString(),
-                    'notes'          => null,
-                    'created_at'     => $now,
-                    'updated_at'     => $now,
+                    'dentist_id' => $dentist->id,
+                    'tooth_number' => $teeth[array_rand($teeth)],
+                    'condition' => $conditions[array_rand($conditions)],
+                    'treatment' => $treatments[array_rand($treatments)],
+                    'status' => 'completed',
+                    'chart_type' => 'adult',
+                    'date_recorded' => $scheduledAt->toDateString(),
+                    'notes' => null,
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ];
 
-                $svc      = $services[array_rand($services->all())];
-                $total    = $svc->base_fee;
+                $svc = $services[array_rand($services->all())];
+                $total = $svc->base_fee;
                 $discount = $pi % 5 === 0 ? round($total * 0.2, 2) : 0;
-                $final    = $total - $discount;
-                $isPaid   = rand(0, 3) > 0;
-                $seq      = str_pad($invoiceNumber++, 4, '0', STR_PAD_LEFT);
-                $year     = $scheduledAt->year;
-                $invDate  = $scheduledAt->toDateString();
+                $final = $total - $discount;
+                $isPaid = rand(0, 3) > 0;
+                $seq = str_pad($invoiceNumber++, 4, '0', STR_PAD_LEFT);
+                $year = $scheduledAt->year;
+                $invDate = $scheduledAt->toDateString();
 
                 $invoice = Invoice::create([
-                    'invoice_number'  => "INV-{$year}-{$seq}",
-                    'patient_id'      => $patient->id,
-                    'appointment_id'  => $appt->id,
-                    'created_by'      => $admin->id,
-                    'invoice_date'    => $invDate,
-                    'due_date'        => $scheduledAt->copy()->addDays(30)->toDateString(),
-                    'subtotal'        => $total,
+                    'invoice_number' => "INV-{$year}-{$seq}",
+                    'patient_id' => $patient->id,
+                    'appointment_id' => $appt->id,
+                    'created_by' => $admin->id,
+                    'invoice_date' => $invDate,
+                    'due_date' => $scheduledAt->copy()->addDays(30)->toDateString(),
+                    'subtotal' => $total,
                     'discount_amount' => $discount,
-                    'discount_type'   => $discount > 0 ? 'senior' : null,
-                    'tax_amount'      => 0,
-                    'total_amount'    => $final,
-                    'amount_paid'     => $isPaid ? $final : 0,
-                    'balance'         => $isPaid ? 0 : $final,
-                    'status'          => $isPaid ? 'paid' : 'partial',
-                    'or_number'       => $isPaid ? "OR-{$year}-{$seq}" : null,
+                    'discount_type' => $discount > 0 ? 'senior' : null,
+                    'tax_amount' => 0,
+                    'total_amount' => $final,
+                    'amount_paid' => $isPaid ? $final : 0,
+                    'balance' => $isPaid ? 0 : $final,
+                    'status' => $isPaid ? 'paid' : 'partial',
+                    'or_number' => $isPaid ? "OR-{$year}-{$seq}" : null,
                 ]);
 
                 InvoiceItem::create([
-                    'invoice_id'  => $invoice->id,
-                    'service_id'  => $svc->id,
+                    'invoice_id' => $invoice->id,
+                    'service_id' => $svc->id,
                     'description' => $svc->name,
-                    'quantity'    => 1,
-                    'unit_price'  => $svc->base_fee,
-                    'line_total'  => $svc->base_fee,
+                    'quantity' => 1,
+                    'unit_price' => $svc->base_fee,
+                    'line_total' => $svc->base_fee,
                 ]);
 
-                if (!$isPaid) {
+                if (! $isPaid) {
                     return;
                 }
 
                 Payment::create([
-                    'invoice_id'       => $invoice->id,
-                    'received_by'      => $admin->id,
-                    'amount'           => $final,
-                    'payment_date'     => $scheduledAt->copy()->addDays(rand(0, 2))->toDateString(),
-                    'method'           => $methods[array_rand($methods)],
-                    'reference_number' => rand(0, 1) ? 'REF-' . rand(100000, 999999) : null,
+                    'invoice_id' => $invoice->id,
+                    'received_by' => $admin->id,
+                    'amount' => $final,
+                    'payment_date' => $scheduledAt->copy()->addDays(rand(0, 2))->toDateString(),
+                    'method' => $methods[array_rand($methods)],
+                    'reference_number' => rand(0, 1) ? 'REF-'.rand(100000, 999999) : null,
                 ]);
 
                 if (isset($policies[$patient->id]) && $a === 0) {
                     InsuranceClaim::create([
                         'patient_insurance_id' => $policies[$patient->id]->id,
-                        'invoice_id'           => $invoice->id,
-                        'patient_id'           => $patient->id,
-                        'claim_number'         => 'CLM-' . rand(10000, 99999),
-                        'claim_date'           => $invDate,
-                        'claimed_amount'       => min($final * 0.8, 10000),
-                        'approved_amount'      => min($final * 0.7, 9000),
-                        'status'               => ['approved', 'paid', 'submitted'][array_rand(['approved', 'paid', 'submitted'])],
-                        'submission_date'      => Carbon::parse($invDate)->addDays(3)->toDateString(),
+                        'invoice_id' => $invoice->id,
+                        'patient_id' => $patient->id,
+                        'claim_number' => 'CLM-'.rand(10000, 99999),
+                        'claim_date' => $invDate,
+                        'claimed_amount' => min($final * 0.8, 10000),
+                        'approved_amount' => min($final * 0.7, 9000),
+                        'status' => ['approved', 'paid', 'submitted'][array_rand(['approved', 'paid', 'submitted'])],
+                        'submission_date' => Carbon::parse($invDate)->addDays(3)->toDateString(),
                     ]);
                 }
             });
@@ -381,17 +376,17 @@ class DatabaseSeeder extends Seeder
             // Today's appointment for first 5 patients
             if ($pi < 5) {
                 Appointment::create([
-                    'patient_id'       => $patient->id,
-                    'dentist_id'       => $dentist->id,
-                    'scheduled_at'     => now()->setHour(9 + $pi)->setMinute(0)->setSecond(0),
+                    'patient_id' => $patient->id,
+                    'dentist_id' => $dentist->id,
+                    'scheduled_at' => now()->setHour(9 + $pi)->setMinute(0)->setSecond(0),
                     'duration_minutes' => 60,
-                    'status'           => ['scheduled', 'confirmed'][array_rand(['scheduled', 'confirmed'])],
-                    'chief_complaint'  => $complaints[array_rand($complaints)],
+                    'status' => ['scheduled', 'confirmed'][array_rand(['scheduled', 'confirmed'])],
+                    'chief_complaint' => $complaints[array_rand($complaints)],
                 ]);
             }
         });
 
-        if (!empty($chartBulk)) {
+        if (! empty($chartBulk)) {
             DB::table('dental_chart_entries')->insert($chartBulk);
         }
         $this->command->info('✓ Appointments, invoices, payments, dental charts');
@@ -401,12 +396,12 @@ class DatabaseSeeder extends Seeder
 
         $patients->take(4)->each(function ($patient, $pi) use ($dentists, $planTitles, $now) {
             $plan = TreatmentPlan::create([
-                'patient_id'             => $patient->id,
-                'dentist_id'             => $dentists[$pi % 2]->id,
-                'title'                  => $planTitles[$pi],
-                'description'            => 'Comprehensive treatment plan.',
-                'status'                 => 'active',
-                'start_date'             => now()->subMonths(2)->toDateString(),
+                'patient_id' => $patient->id,
+                'dentist_id' => $dentists[$pi % 2]->id,
+                'title' => $planTitles[$pi],
+                'description' => 'Comprehensive treatment plan.',
+                'status' => 'active',
+                'start_date' => now()->subMonths(2)->toDateString(),
                 'target_completion_date' => now()->addMonths(4)->toDateString(),
             ]);
 
@@ -421,9 +416,9 @@ class DatabaseSeeder extends Seeder
         // ── Templates ─────────────────────────────────────────────────────────
         collect([
             ['Standard Prescription', 'prescription',     '<div style="font-family:serif;padding:40px;max-width:600px;margin:auto"><div style="text-align:center;border-bottom:2px solid #333;padding-bottom:16px;margin-bottom:24px"><h2 style="margin:0">{{clinic_name}}</h2><p style="margin:4px 0;font-size:13px">{{clinic_address}} | {{clinic_phone}}</p><p style="margin:4px 0;font-size:13px">{{dentist_name}} | PRC Lic. No. {{dentist_license}}</p></div><div style="margin-bottom:20px"><strong>Patient:</strong> {{patient_name}} &nbsp;&nbsp; <strong>Age:</strong> {{patient_age}}<br><strong>Date:</strong> {{date}}</div><div style="border:1px solid #ccc;padding:16px;min-height:120px;margin-bottom:20px"><p style="font-size:18px;font-weight:bold;margin-top:0">Rx</p><p style="color:#666;font-style:italic">[Write medications here]</p></div><div style="margin-top:60px;text-align:right"><div style="display:inline-block;border-top:1px solid #333;padding-top:4px;min-width:200px;text-align:center">{{dentist_name}}<br><span style="font-size:12px">Signature over Printed Name</span></div></div></div>'],
-            ['Dental Certificate',    'dental_certificate','<div style="font-family:serif;padding:48px;max-width:600px;margin:auto;text-align:center"><h2>{{clinic_name}}</h2><p>{{clinic_address}}</p><hr style="margin:24px 0"><h3 style="letter-spacing:2px">DENTAL CERTIFICATE</h3><p style="margin-top:32px;text-align:left;line-height:2">This is to certify that <strong>{{patient_name}}</strong>, {{patient_age}} years old, has been examined and found to be <strong>DENTALLY FIT</strong> as of <strong>{{date}}</strong>.</p><div style="margin-top:60px;text-align:right"><div style="display:inline-block;border-top:1px solid #333;padding-top:4px;min-width:220px;text-align:center">{{dentist_name}}<br><span style="font-size:12px">PRC Lic. No. {{dentist_license}}</span></div></div></div>'],
+            ['Dental Certificate',    'dental_certificate', '<div style="font-family:serif;padding:48px;max-width:600px;margin:auto;text-align:center"><h2>{{clinic_name}}</h2><p>{{clinic_address}}</p><hr style="margin:24px 0"><h3 style="letter-spacing:2px">DENTAL CERTIFICATE</h3><p style="margin-top:32px;text-align:left;line-height:2">This is to certify that <strong>{{patient_name}}</strong>, {{patient_age}} years old, has been examined and found to be <strong>DENTALLY FIT</strong> as of <strong>{{date}}</strong>.</p><div style="margin-top:60px;text-align:right"><div style="display:inline-block;border-top:1px solid #333;padding-top:4px;min-width:220px;text-align:center">{{dentist_name}}<br><span style="font-size:12px">PRC Lic. No. {{dentist_license}}</span></div></div></div>'],
             ['Patient Consent Form',  'consent_form',      '<div style="font-family:sans-serif;padding:40px;max-width:600px;margin:auto"><h3 style="text-align:center">{{clinic_name}}</h3><h4 style="text-align:center">INFORMED CONSENT FOR DENTAL TREATMENT</h4><p>I, <strong>{{patient_name}}</strong>, hereby give my consent to {{dentist_name}} and staff of {{clinic_name}} to perform the necessary dental procedures as discussed.</p><p>I acknowledge that I have disclosed all relevant medical history information.</p><div style="margin-top:40px;display:flex;justify-content:space-between"><div style="min-width:200px;border-top:1px solid #333;text-align:center;padding-top:4px">Patient Signature</div><div style="min-width:140px;border-top:1px solid #333;text-align:center;padding-top:4px">Date: {{date}}</div></div></div>'],
-        ])->each(fn($t) => Template::firstOrCreate(
+        ])->each(fn ($t) => Template::firstOrCreate(
             ['name' => $t[0]],
             ['type' => $t[1], 'content' => $t[2], 'is_active' => true, 'is_default' => true, 'created_by' => $admin->id]
         ));
@@ -432,14 +427,14 @@ class DatabaseSeeder extends Seeder
         // ── SMS Reminders ─────────────────────────────────────────────────────
         $smsStatuses = ['sent', 'sent', 'failed', 'pending'];
 
-        $patients->take(5)->each(fn($patient) => SmsReminder::create([
-            'patient_id'   => $patient->id,
+        $patients->take(5)->each(fn ($patient) => SmsReminder::create([
+            'patient_id' => $patient->id,
             'phone_number' => $patient->phone,
-            'message'      => "Hi {$patient->first_name}, reminder for your appointment at DentalCare Clinic.",
-            'type'         => 'appointment_reminder',
-            'status'       => $smsStatuses[array_rand($smsStatuses)],
+            'message' => "Hi {$patient->first_name}, reminder for your appointment at DentalCare Clinic.",
+            'type' => 'appointment_reminder',
+            'status' => $smsStatuses[array_rand($smsStatuses)],
             'scheduled_at' => now()->subDays(rand(1, 10)),
-            'sent_at'      => now()->subDays(rand(1, 10)),
+            'sent_at' => now()->subDays(rand(1, 10)),
         ]));
         $this->command->info('✓ SMS reminders');
 

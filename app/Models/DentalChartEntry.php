@@ -17,7 +17,18 @@ class DentalChartEntry extends Model
         return ['date_recorded' => 'date'];
     }
 
-    public function patient()     { return $this->belongsTo(Patient::class); }
-    public function dentist()     { return $this->belongsTo(User::class, 'dentist_id'); }
-    public function appointment() { return $this->belongsTo(Appointment::class); }
+    public function patient()
+    {
+        return $this->belongsTo(Patient::class);
+    }
+
+    public function dentist()
+    {
+        return $this->belongsTo(User::class, 'dentist_id');
+    }
+
+    public function appointment()
+    {
+        return $this->belongsTo(Appointment::class);
+    }
 }

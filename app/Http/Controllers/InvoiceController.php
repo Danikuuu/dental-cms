@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Invoice;
-use App\Models\InvoiceItem;
 use App\Models\Patient;
 use App\Models\Payment;
 use App\Models\Service;
@@ -18,13 +18,11 @@ class InvoiceController extends Controller
     {
         $invoices = Invoice::with(['patient', 'createdBy'])
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
-            ->when($request->search, fn ($q, $s) =>
-                $q->where('invoice_number', 'like', "%$s%")
-                  ->orWhereHas('patient', fn ($p) =>
-                      $p->where('last_name', 'like', "%$s%")
-                        ->orWhere('first_name', 'like', "%$s%")
-                        ->orWhere('patient_code', 'like', "%$s%")
-                  )
+            ->when($request->search, fn ($q, $s) => $q->where('invoice_number', 'like', "%$s%")
+                ->orWhereHas('patient', fn ($p) => $p->where('last_name', 'like', "%$s%")
+                    ->orWhere('first_name', 'like', "%$s%")
+                    ->orWhere('patient_code', 'like', "%$s%")
+                )
             )
             ->orderByDesc('invoice_date')
             ->paginate(20)
@@ -32,7 +30,7 @@ class InvoiceController extends Controller
 
         return Inertia::render('billing/Index', [
             'invoices' => $invoices,
-            'filters'  => $request->only(['status', 'search']),
+            'filters' => $request->only(['status', 'search']),
         ]);
     }
 
@@ -51,53 +49,53 @@ class InvoiceController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'patient_id'       => 'required|exists:patients,id',
-            'appointment_id'   => 'nullable|exists:appointments,id',
-            'invoice_date'     => 'required|date',
-            'due_date'         => 'nullable|date|after_or_equal:invoice_date',
-            'discount_amount'  => 'nullable|numeric|min:0',
-            'discount_type'    => 'nullable|string|max:50',
+            'patient_id' => 'required|exists:patients,id',
+            'appointment_id' => 'nullable|exists:appointments,id',
+            'invoice_date' => 'required|date',
+            'due_date' => 'nullable|date|after_or_equal:invoice_date',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'discount_type' => 'nullable|string|max:50',
             'discount_percent' => 'nullable|numeric|min:0|max:100',
-            'notes'            => 'nullable|string',
-            'items'            => 'required|array|min:1',
+            'notes' => 'nullable|string',
+            'items' => 'required|array|min:1',
             'items.*.description' => 'required|string|max:255',
-            'items.*.unit_price'  => 'required|numeric|min:0',
-            'items.*.quantity'    => 'required|integer|min:1',
-            'items.*.service_id'  => 'nullable|exists:services,id',
-            'items.*.tooth_number'=> 'nullable|string|max:10',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.service_id' => 'nullable|exists:services,id',
+            'items.*.tooth_number' => 'nullable|string|max:10',
         ]);
 
-        $subtotal       = collect($validated['items'])->sum(fn ($i) => $i['unit_price'] * $i['quantity']);
+        $subtotal = collect($validated['items'])->sum(fn ($i) => $i['unit_price'] * $i['quantity']);
         $discountAmount = (float) ($validated['discount_amount'] ?? 0);
-        $taxAmount      = 0;
-        $total          = $subtotal - $discountAmount + $taxAmount;
+        $taxAmount = 0;
+        $total = $subtotal - $discountAmount + $taxAmount;
 
         $invoice = Invoice::create([
-            'patient_id'       => $validated['patient_id'],
-            'appointment_id'   => $validated['appointment_id'] ?? null,
-            'created_by'       => Auth::id(),
-            'invoice_date'     => $validated['invoice_date'],
-            'due_date'         => $validated['due_date'] ?? null,
-            'subtotal'         => $subtotal,
-            'discount_amount'  => $discountAmount,
-            'discount_type'    => $validated['discount_type'] ?? null,
+            'patient_id' => $validated['patient_id'],
+            'appointment_id' => $validated['appointment_id'] ?? null,
+            'created_by' => Auth::id(),
+            'invoice_date' => $validated['invoice_date'],
+            'due_date' => $validated['due_date'] ?? null,
+            'subtotal' => $subtotal,
+            'discount_amount' => $discountAmount,
+            'discount_type' => $validated['discount_type'] ?? null,
             'discount_percent' => $validated['discount_percent'] ?? 0,
-            'tax_amount'       => $taxAmount,
-            'total_amount'     => $total,
-            'amount_paid'      => 0,
-            'balance'          => $total,
-            'status'           => 'draft',
-            'notes'            => $validated['notes'] ?? null,
+            'tax_amount' => $taxAmount,
+            'total_amount' => $total,
+            'amount_paid' => 0,
+            'balance' => $total,
+            'status' => 'draft',
+            'notes' => $validated['notes'] ?? null,
         ]);
 
         foreach ($validated['items'] as $item) {
             $invoice->items()->create([
-                'service_id'  => $item['service_id'] ?? null,
+                'service_id' => $item['service_id'] ?? null,
                 'description' => $item['description'],
-                'tooth_number'=> $item['tooth_number'] ?? null,
-                'quantity'    => $item['quantity'],
-                'unit_price'  => $item['unit_price'],
-                'line_total'  => $item['unit_price'] * $item['quantity'],
+                'tooth_number' => $item['tooth_number'] ?? null,
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['unit_price'],
+                'line_total' => $item['unit_price'] * $item['quantity'],
             ]);
         }
 
@@ -121,26 +119,26 @@ class InvoiceController extends Controller
     public function recordPayment(Request $request, Invoice $invoice)
     {
         $validated = $request->validate([
-            'amount'           => 'required|numeric|min:0.01',
-            'payment_date'     => 'required|date',
-            'method'           => 'required|in:cash,gcash,maya,credit_card,debit_card,bank_transfer,check',
+            'amount' => 'required|numeric|min:0.01',
+            'payment_date' => 'required|date',
+            'method' => 'required|in:cash,gcash,maya,credit_card,debit_card,bank_transfer,check',
             'reference_number' => 'nullable|string|max:100',
-            'notes'            => 'nullable|string',
+            'notes' => 'nullable|string',
         ]);
 
         Payment::create([
             ...$validated,
-            'invoice_id'  => $invoice->id,
+            'invoice_id' => $invoice->id,
             'received_by' => Auth::id(),
         ]);
 
         $totalPaid = $invoice->payments()->sum('amount');
-        $balance   = (float) $invoice->total_amount - (float) $totalPaid;
+        $balance = (float) $invoice->total_amount - (float) $totalPaid;
 
         $invoice->update([
             'amount_paid' => $totalPaid,
-            'balance'     => max(0, $balance),
-            'status'      => $balance <= 0 ? 'paid' : 'partial',
+            'balance' => max(0, $balance),
+            'status' => $balance <= 0 ? 'paid' : 'partial',
         ]);
 
         return back()->with('success', 'Payment recorded successfully.');
@@ -154,14 +152,13 @@ class InvoiceController extends Controller
 
         $invoice->update(['or_number' => $request->or_number]);
 
-        \App\Models\ActivityLog::record(
+        ActivityLog::record(
             'issue_or',
             "Issued OR #{$request->or_number} for invoice {$invoice->invoice_number}",
-            \App\Models\Invoice::class,
+            Invoice::class,
             $invoice->id
         );
 
         return back()->with('success', 'Official Receipt number assigned.');
     }
-
 }

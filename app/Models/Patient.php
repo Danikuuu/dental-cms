@@ -25,17 +25,17 @@ class Patient extends Model
     protected function casts(): array
     {
         return [
-            'date_of_birth'      => 'date',
-            'last_dental_visit'  => 'date',
-            'has_hypertension'   => 'boolean',
-            'has_diabetes'       => 'boolean',
-            'has_heart_disease'  => 'boolean',
-            'has_asthma'         => 'boolean',
+            'date_of_birth' => 'date',
+            'last_dental_visit' => 'date',
+            'has_hypertension' => 'boolean',
+            'has_diabetes' => 'boolean',
+            'has_heart_disease' => 'boolean',
+            'has_asthma' => 'boolean',
             'has_bleeding_disorder' => 'boolean',
-            'has_thyroid_disorder'  => 'boolean',
-            'is_pregnant'        => 'boolean',
+            'has_thyroid_disorder' => 'boolean',
+            'is_pregnant' => 'boolean',
             'has_kidney_disease' => 'boolean',
-            'has_liver_disease'  => 'boolean',
+            'has_liver_disease' => 'boolean',
         ];
     }
 
@@ -51,20 +51,39 @@ class Patient extends Model
     }
 
     // Relationships
-    public function appointments()      { return $this->hasMany(Appointment::class); }
-    public function dentalChartEntries(){ return $this->hasMany(DentalChartEntry::class); }
-    public function invoices()          { return $this->hasMany(Invoice::class); }
-    public function images()            { return $this->hasMany(PatientImage::class); }
-    public function treatmentPlans()    { return $this->hasMany(TreatmentPlan::class); }
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
+    }
+
+    public function dentalChartEntries()
+    {
+        return $this->hasMany(DentalChartEntry::class);
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function images()
+    {
+        return $this->hasMany(PatientImage::class);
+    }
+
+    public function treatmentPlans()
+    {
+        return $this->hasMany(TreatmentPlan::class);
+    }
 
     // Auto-generate patient code
     protected static function booted(): void
     {
         static::creating(function (Patient $patient) {
             if (empty($patient->patient_code)) {
-                $year  = date('Y');
+                $year = date('Y');
                 $count = static::whereYear('created_at', $year)->count() + 1;
-                $patient->patient_code = 'PAT-' . $year . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+                $patient->patient_code = 'PAT-'.$year.'-'.str_pad($count, 4, '0', STR_PAD_LEFT);
             }
         });
     }

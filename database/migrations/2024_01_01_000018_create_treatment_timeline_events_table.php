@@ -1,9 +1,11 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('treatment_timeline_events', function (Blueprint $table) {
@@ -23,5 +25,9 @@ return new class extends Migration {
             $table->index(['patient_id', 'event_date']);
         });
     }
-    public function down(): void { Schema::dropIfExists('treatment_timeline_events'); }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('treatment_timeline_events');
+    }
 };
